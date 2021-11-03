@@ -13,3 +13,8 @@ df = df.replace('?', np.NaN)
 
 # 2. Drop the NaN values (row)
 df = df.dropna(axis=0)
+
+# 3. Drop columns (education, capital-gain, capital-loss)
+df.drop(['education', 'capital-gain', 'capital-loss'], axis=1, inplace=True)
+
+print(df.columns)
