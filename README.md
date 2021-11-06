@@ -6,6 +6,8 @@ Kaggle Website: https://www.kaggle.com/wenruliu/adult-income-dataset
 ![image](https://user-images.githubusercontent.com/81156796/140601684-074f080a-eef5-4dea-8dfd-65aac26ba486.png)
 
 #2 result of encoding&scaling
+  ex) ordinal encoding & standardization scaling
+  ![image](https://user-images.githubusercontent.com/81156796/140602045-595b226a-ce92-46cf-b3b3-347e58df3cde.png)
 
 #3 result of classification
   #3-1 Ordinal encoding & standardization scaling
