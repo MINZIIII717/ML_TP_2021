@@ -1,6 +1,12 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, OneHotEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn import svm
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import preprocessing
 from sklearn.preprocessing import StandardScaler, RobustScaler, MaxAbsScaler, MinMaxScaler
 
 # ----------------------------------- Functions -----------------------------------
@@ -14,6 +20,90 @@ def income(x) :
     return x.replace(x,"0")
   return "1"
 
+
+def oneHotEncode_category(arr, col_list):
+  enc = preprocessing.OneHotEncoder()
+  for col in col_list:
+    encodedData = enc.fit_transform(arr[[col]])
+    encodedDataRecovery = np.argmax(encodedData, axis=1).reshape(-1, 1)
+    arr[col] = encodedDataRecovery
+
+def ordinalEncode_category(df, col_list):
+  ordinalEncoder = preprocessing.OrdinalEncoder()
+  for col in col_list:
+    X = pd.DataFrame(df[col])
+    ordinalEncoder.fit(X)
+    df[col] = pd.DataFrame(ordinalEncoder.transform(X))
+
+
+def encodingNscalingData(dataset, scaled_col, encoded_col):
+  result = []
+  for encoder in [0, 1]:
+    new_df = dataset.copy();
+    if encoder == 0:
+      ordinalEncode_category(new_df, encoded_col)
+    elif encoder == 1:
+      ordinalEncode_category(new_df, encoded_col)
+    new_df.dropna(axis=0, inplace=True)
+    for scaler in [StandardScaler(), MinMaxScaler(), MaxAbsScaler(), RobustScaler()]:
+      for col in scaled_col:
+        new_df[col] = scaler.fit_transform(new_df[col].values[:, np.newaxis]).reshape(-1)
+      result.append(new_df)
+  return result
+
+def callClassificationParameters(num):
+  decisionTreepParameters = {
+    "criterion": ["gini", "entropy"],
+    "splitter": ["best", "random"],
+    "max_depth": [3, 5, 10],
+    "min_samples_leaf": [1, 2, 3],
+    "min_samples_split": [3, 5, 2],
+    "max_features": ["auto", "sqrt", "log2"]
+  }
+  logisticRegressionParameters = {
+    "penalty": ['l2', 'l1'],
+    "solver": ['saga', "liblinear"],
+    "multi_class": ['auto', 'ovr'],
+    "random_state": [3, 5, 10],
+    "C": [1.0, 0.5],
+    "max_iter": [1000]
+  }
+  svmParameters = {
+    "decision_function_shape": ['ovo', 'ovr'],
+    "gamma": ['scale', 'auto'],
+    "kernel": ['linear', 'poly', 'rbf', 'sigmoid'],
+    "C": [1.0, 0.5]
+  }
+  if num == 0:
+    return logisticRegressionParameters
+  elif num == 1:
+    return decisionTreepParameters
+  else:
+    return svmParameters
+
+
+
+def findBestClassificationModel(data_list,target):
+  bestscore = -1
+  i = 0
+  for dataset in data_list:
+    i = 0
+    y = dataset[target]
+    x = dataset.drop([target], axis=1)
+    train_x, test_x, train_y, test_y = train_test_split(x, y, train_size=0.7, random_state=0)
+    for model in [LogisticRegression(), DecisionTreeClassifier(), svm.SVC()]:
+      tunedModel = GridSearchCV(model, callClassificationParameters(i), scoring='neg_mean_squared_error', cv=5)
+      tunedModel.fit(train_x, train_y)
+      print(tunedModel.best_params_)
+      print(tunedModel.best_score_)
+      i = i + 1
+      if bestscore < tunedModel.best_score_:
+        bestscore = tunedModel.best_score_
+        bestparams = tunedModel.best_params_
+  best = []
+  best.append(bestparams)
+  best.append(bestscore)
+  return best
 
 # Load the dataset (adult.csv)
 df = pd.read_csv('adult.csv')
@@ -47,3 +137,11 @@ df["educational-num"]=df["educational-num"].mask(df["educational-num"] > 13, 3)
 
 pd.set_option('display.max_columns', None)
 print(df)
+
+
+scaled_col=["age","fnlwgt","educational-num","hours-per-week","native-country","income"]
+encoded_col=["workclass","marital-status","occupation","relationship","race","gender"]
+preprocessing_list=encodingNscalingData(df, scaled_col, encoded_col)
+print(preprocessing_list)
+
+# print(findBestClassificationModel(preprocessing_list,"income"))
