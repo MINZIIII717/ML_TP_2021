@@ -9,9 +9,9 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn import preprocessing
 from sklearn.preprocessing import StandardScaler, RobustScaler, MaxAbsScaler, MinMaxScaler
 from sklearn.metrics import accuracy_score
-from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve
+from sklearn.metrics import confusion_matrix, plot_confusion_matrix
 
 # ----------------------------------- Functions -----------------------------------
 def nativeCountry(x) :
@@ -183,7 +183,13 @@ print(preprocessing_list)
 model, (test_x, test_y) = findBestClassificationModel(preprocessing_list,"income")
 confusionMatrix(model, test_x, test_y)
 
+# visualize ROC curve
 prob = model.predict_proba(test_x)
 prob = prob[:, 1]
 fper, tper, thresholds = roc_curve(test_y, prob)
 plot_roc_curve(fper, tper)
+
+# visualize confusion matrix
+label = ['0', '1']
+plot = plot_confusion_matrix(model, test_x, test_y, display_labels=label, cmap=plt.cm.Blues, normalize=None)
+plot.ax_.set_title('Confusion Matrix')
