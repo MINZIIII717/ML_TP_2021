@@ -10,6 +10,8 @@ from sklearn import preprocessing
 from sklearn.preprocessing import StandardScaler, RobustScaler, MaxAbsScaler, MinMaxScaler
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve
 
 # ----------------------------------- Functions -----------------------------------
 def nativeCountry(x) :
@@ -127,6 +129,15 @@ def findBestClassificationModel(data_list,target):
   print(bestscore)
   return best_model, best_test_set # return best model and test set
 
+def plot_roc_curve(fper, tper):
+    plt.plot(fper, tper, color='red', label='Best model')
+    plt.plot([0, 1], [0, 1], color='green', linestyle='--')
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC Curve')
+    plt.legend()
+    plt.show()
+
 
 # Load the dataset (adult.csv)
 df = pd.read_csv('adult.csv')
@@ -169,6 +180,10 @@ print(preprocessing_list)
 
 # print(findBestClassificationModel(preprocessing_list,"income"))
 
-# 최적의 모델과 테스트세트를 가져옴
 model, (test_x, test_y) = findBestClassificationModel(preprocessing_list,"income")
 confusionMatrix(model, test_x, test_y)
+
+prob = model.predict_proba(test_x)
+prob = prob[:, 1]
+fper, tper, thresholds = roc_curve(test_y, prob)
+plot_roc_curve(fper, tper)
