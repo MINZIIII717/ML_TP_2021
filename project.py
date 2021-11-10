@@ -169,6 +169,5 @@ print(preprocessing_list)
 
 # print(findBestClassificationModel(preprocessing_list,"income"))
 
-# 최적의 모델과 테스트세트를 가져옴
 model, (test_x, test_y) = findBestClassificationModel(preprocessing_list,"income")
 confusionMatrix(model, test_x, test_y)
