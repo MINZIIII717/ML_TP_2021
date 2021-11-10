@@ -8,6 +8,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn import preprocessing
 from sklearn.preprocessing import StandardScaler, RobustScaler, MaxAbsScaler, MinMaxScaler
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix
 
 # ----------------------------------- Functions -----------------------------------
 def nativeCountry(x) :
@@ -81,11 +83,23 @@ def callClassificationParameters(num):
   else:
     return svmParameters
 
-
+def printConfusionMatrix(model, x, y):
+  em = model.best_estimator_
+  pred = em.predict(x)
+  
+  # (optional) accuracy score
+  accs = accuracy_score(y, pred)
+  print("accuracy_score", accs)
+  
+  # Confusiton Matrix
+  cf = confusion_matrix(y, pred)
+  print(cf)
 
 def findBestClassificationModel(data_list,target):
   bestscore = -1
   i = 0
+  best_model = None
+  best_test_set = None
   for dataset in data_list:
     i = 0
     y = dataset[target]
@@ -94,16 +108,25 @@ def findBestClassificationModel(data_list,target):
     for model in [LogisticRegression(), DecisionTreeClassifier(), svm.SVC()]:
       tunedModel = GridSearchCV(model, callClassificationParameters(i), scoring='neg_mean_squared_error', cv=5)
       tunedModel.fit(train_x, train_y)
+      print("-------------------------------")
       print(tunedModel.best_params_)
       print(tunedModel.best_score_)
+      printConfusionMatrix(tunedModel, test_x, test_y)
       i = i + 1
       if bestscore < tunedModel.best_score_:
         bestscore = tunedModel.best_score_
         bestparams = tunedModel.best_params_
-  best = []
-  best.append(bestparams)
-  best.append(bestscore)
-  return best
+        bestscore = tunedModel.best_score_
+        bestparams = tunedModel.best_params_
+        # save best model and test set
+        best_model = tunedModel
+        best_test_set = (test_x, test_y)
+
+  print("------Best model-------")
+  print(bestparams)
+  print(bestscore)
+  return best_model, best_test_set # return best model and test set
+
 
 # Load the dataset (adult.csv)
 df = pd.read_csv('adult.csv')
@@ -145,3 +168,7 @@ preprocessing_list=encodingNscalingData(df, scaled_col, encoded_col)
 print(preprocessing_list)
 
 # print(findBestClassificationModel(preprocessing_list,"income"))
+
+# 최적의 모델과 테스트세트를 가져옴
+model, (test_x, test_y) = findBestClassificationModel(preprocessing_list,"income")
+confusionMatrix(model, test_x, test_y)
